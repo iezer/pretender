@@ -7,6 +7,7 @@ var appearsBrowserified = typeof self !== 'undefined' &&
 
 var RouteRecognizer = appearsBrowserified ? require('route-recognizer') : self.RouteRecognizer;
 var FakeXMLHttpRequest = appearsBrowserified ? require('fake-xml-http-request') : self.FakeXMLHttpRequest;
+var FakeXMLHttpRequestProxy = appearsBrowserified ? require('./fake-xml-http-request-proxy') : self.FakeXMLHttpRequest;
 
 /**
  * parseURL - decompose a URL into its parts
@@ -107,6 +108,7 @@ Hosts.prototype.forURL = function(url) {
 };
 
 function Pretender(/* routeMap1, routeMap2, ...*/) {
+  console.log('pretender constructor');
   this.hosts = new Hosts();
 
   this.handlers = [];
@@ -133,6 +135,7 @@ function Pretender(/* routeMap1, routeMap2, ...*/) {
 }
 
 function createPassthrough(fakeXHR, pretender) {
+  console.log('createPass');
   // event types to handle on the xhr
   var evts = ['error', 'timeout', 'abort', 'readystatechange'];
 
@@ -142,7 +145,7 @@ function createPassthrough(fakeXHR, pretender) {
   // properties to copy from the native xhr to fake xhr
   var lifecycleProps = ['readyState', 'responseText', 'responseXML', 'status', 'statusText'];
 
-  var xhr = fakeXHR._passthroughRequest = new pretender._nativeXMLHttpRequest();
+  var xhr = fakeXHR._passthroughRequest = new FakeXMLHttpRequestProxy(pretender._nativeXMLHttpRequest);
 
   if (fakeXHR.responseType === 'arraybuffer') {
     lifecycleProps = ['readyState', 'response', 'status', 'statusText'];
